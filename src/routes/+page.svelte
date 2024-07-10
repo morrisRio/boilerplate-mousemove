@@ -10,6 +10,8 @@ class CursorInteraction {
     rect: DOMRect;
     mouseX: number = 0;
     mouseY: number = 0;
+    mouseXrel: number = 0;
+    mouseYrel: number = 0;
     isHovered: boolean = false;
 
     constructor(canvas: HTMLCanvasElement) {
@@ -17,6 +19,8 @@ class CursorInteraction {
         this.ctx = canvas.getContext('2d');
         this.dpr = window.devicePixelRatio || 1;
         this.rect = canvas.getBoundingClientRect();
+        this.mouseXrel = this.mouseX / this.rect.width;
+        this.mouseYrel = this.mouseY / this.rect.height;
     }
 
     private resizeCanvas(): void {
@@ -43,6 +47,8 @@ class CursorInteraction {
     private handleMouseMove(e: MouseEvent): void {
         this.mouseX = e.clientX - this.rect.left;
         this.mouseY = e.clientY - this.rect.top;
+        this.mouseXrel = Math.min(Math.max(this.mouseX / this.rect.width, 0), 1);
+        this.mouseYrel = Math.min(Math.max(this.mouseY / this.rect.height, 0), 1);
         requestAnimationFrame(this.draw.bind(this));
     }
 
@@ -62,19 +68,21 @@ class CursorInteraction {
         requestAnimationFrame(this.draw.bind(this));
     }
 
-    getDebugInfo(): { mouseX: number; mouseY: number; isHovered: boolean } {
+    getDebugInfo(): { mouseX: number; mouseY: number; isHovered: boolean, mouseXrel: number, mouseYrel: number} {
         return {
             mouseX: this.mouseX,
             mouseY: this.mouseY,
-            isHovered: this.isHovered
+            isHovered: this.isHovered,
+            mouseXrel: this.mouseXrel,
+            mouseYrel: this.mouseYrel,
         };
     }
 }
 
 let canvas: HTMLCanvasElement;
 let cursorInteraction: CursorInteraction;
-let debugInfo = { mouseX: 0, mouseY: 0, isHovered: false };
-let showDebug = false;
+let debugInfo = { mouseX: 0, mouseY: 0, isHovered: false, mouseXrel: 0, mouseYrel: 0};
+let showDebug = true;
 
 onMount(() => {
     cursorInteraction = new CursorInteraction(canvas);
@@ -108,6 +116,8 @@ function toggleDebug() {
         <div id="debug-info">
             <p>Mouse X: {debugInfo.mouseX.toFixed(2)}</p>
             <p>Mouse Y: {debugInfo.mouseY.toFixed(2)}</p>
+            <p>Mouse X Relative: {debugInfo.mouseXrel}</p>
+            <p>Mouse Y Relative: {debugInfo.mouseYrel}</p>
             <p>Is Hovered: {debugInfo.isHovered}</p>
         </div>
     {/if}
